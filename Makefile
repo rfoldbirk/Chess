@@ -1,9 +1,18 @@
-compiler	= cc
-files		= *.c
-flags		= -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
-include 	= -I include
-wsserver	= lib/libws.a
-out			= -o bin/app
+compiler = cc
+files = *.c
+OS := $(shell uname -s)
+flags = -lraylib
+ifeq ($(OS),Darwin)
+	flags += -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL -D_FORTIFY_SOURCE=0
+endif
+ifeq ($(OS),Linux)
+	flags += -lGL -lm -lpthread -ldl -lrt -lX11
+endif
+out = -o bin/app
+
+# Kommer til at blive brugt
+#include 	= -I include
+#wsserver	= lib/libws.a
 
 # En liste over alt der skal køres
 all: game
