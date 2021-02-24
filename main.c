@@ -29,7 +29,7 @@ int main(void)
 	while (!WindowShouldClose())
 	{
 
-		if (IsCursorOnScreen() && IsMouseButtonPressed(0)) {
+		if (IsMouseButtonPressed(0)) {
 			Vector2 mpos = GetMousePosition();
 
 			printf("%f %f\n", mpos.x, mpos.y);
