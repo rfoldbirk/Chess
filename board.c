@@ -52,6 +52,10 @@ int board_init(struct Piece* pieces[], char notation[64]) {
 			strcat(src, "pieces/");
 			strcat(src, name);
 			strcat(src, ".png");
+
+			if (strstr(name, "wu")) {
+				printf("\nPiece: (%d): %s - %s\n", (*index), name, src);
+			}
 			
 			strcpy(pieces[(*index)]->name, name);
 

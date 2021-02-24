@@ -13,16 +13,16 @@ int main(void)
 
 
 	// Opsætning af bræt
-	const int amount = 64;
+	const int amount = 65;
 	struct Piece* pieces[amount];
 	
 	char notation[amount];
-	strcpy(notation, "rnbqkbnr-pppppppp-8888-PPPPPPPP-RNBQKBNR");
+	strcpy(notation, "rnbqkbnr-pppppppp--8888--PPPPPPPP-RNBQKBNR");
 
 
 	int AMOUNT = board_init(pieces, notation);
 
-	printf("%s %d\n", "App loaded successfully!", AMOUNT);
+	printf("Successfully loaded: (%d) pieces!\n", AMOUNT);
 
 	while (!WindowShouldClose())
 	{
