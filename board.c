@@ -21,20 +21,12 @@ int board_init(struct Piece* pieces[], char notation[64]) {
 	{	
 		if (notation[i] == '-') continue;
 
-		printf("%d\n", 1);
-
 		char* n = malloc(sizeof(char));
 		n[0] = notation[i];
 
-
 		// Allokerer hukommelse til brikken
 		pieces[(*index)] = malloc(sizeof(struct Piece));
-		if (pieces[(*index)] == NULL) {
-			printf("%s\n", "FAILED!");
-			return 0;
-		}
 		strcpy(pieces[(*index)]->name, "??"); // Default navn
-		printf("%d\n", 3);
 
 		if (n[0] >= 'A') {
 			char* name = malloc(sizeof(char)*3);
