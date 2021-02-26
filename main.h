@@ -17,13 +17,20 @@ struct Piece {
 
     Texture2D* texture;
 	Vector2 pos;
+	Vector2 selected_position;
 };
 
 struct Board {
 	struct Piece* pieces[65];
-	char notation[65];
-
 	struct Piece* selected_piece;
+
+	Vector2 selected;
+
+	int amount_of_pieces;
+	int size;
+	
+	char notation[100];
+
 };
 
 struct Smart_Texture {
@@ -32,6 +39,7 @@ struct Smart_Texture {
 };
 
 
-struct Board* board_m();
-int board_init(struct Piece* pieces[], char notation[64]);
-void board_draw(int size);
+struct Board* board_init();
+int board_load_pieces(struct Board* board);
+void board_draw(struct Board* board);
+void board_check_click(struct Board* board);

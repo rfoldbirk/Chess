@@ -1,7 +1,59 @@
 #include "main.h"
 
 
-int board_init(struct Piece* pieces[], char notation[64]) {
+struct Board* board_init() {
+	struct Board* nboard = malloc(sizeof(struct Board));
+
+	strcpy(nboard->notation, "rnbqkbnr-pppppppp-8888-PPPPPPPP-RNBQKBNR");
+
+	nboard->amount_of_pieces = board_load_pieces(nboard);
+	nboard->size = 64;
+	nboard->selected_piece = NULL;
+
+	return nboard;
+}
+
+
+void board_check_click(struct Board* board) {
+	Vector2 reset_pos = { -1, -1 };
+	Vector2 mpos = GetMousePosition();
+	int xpos = mpos.x/board->size;
+	int ypos = mpos.y/board->size;
+
+	if (IsMouseButtonPressed(1)) {
+		board->selected.x = xpos;
+		board->selected.y = ypos;
+	}
+	else if (IsMouseButtonDown(0)) {
+		board->selected = reset_pos;
+
+		// Tjekker efter om spilleren trykker på en brik
+		for (int i = 0; i < board->amount_of_pieces; ++i) {
+			if (board->selected_piece != NULL) continue;
+
+			if (board->pieces[i]->pos.x == xpos && board->pieces[i]->pos.y == ypos) {
+				board->selected_piece = board->pieces[i];
+				
+				printf("SELECTED: %s\n", board->pieces[i]->name);
+			}
+		}
+	} else {
+		if (board->selected_piece != NULL) {
+			
+			board->selected_piece->selected_position = reset_pos;
+			board->selected_piece = NULL;
+		}
+	}
+
+	if (board->selected_piece != NULL) {
+		Vector2 cmpos = { mpos.x-board->size/2, mpos.y-board->size/2 };
+		board->selected_piece->selected_position = cmpos;
+	}
+}
+
+
+
+int board_load_pieces(struct Board* board) {
 	
 	int* index = malloc(sizeof(int));
 	(*index) = 0;
@@ -17,16 +69,16 @@ int board_init(struct Piece* pieces[], char notation[64]) {
 	(*captured_amount) = 0;
 
 
-	for (int i = 0; i < strlen(notation); ++i)
+	for (int i = 0; i < strlen(board->notation); ++i)
 	{	
-		if (notation[i] == '-') continue;
+		if (board->notation[i] == '-') continue;
 
 		char* n = malloc(sizeof(char));
-		n[0] = notation[i];
+		n[0] = board->notation[i];
 
 		// Allokerer hukommelse til brikken
-		pieces[(*index)] = malloc(sizeof(struct Piece));
-		strcpy(pieces[(*index)]->name, "??"); // Default navn
+		board->pieces[(*index)] = malloc(sizeof(struct Piece));
+		strcpy(board->pieces[(*index)]->name, "??"); // Default navn
 
 		if (n[0] >= 'A') {
 			char* name = malloc(sizeof(char)*3);
@@ -43,9 +95,13 @@ int board_init(struct Piece* pieces[], char notation[64]) {
 			// Position
 			int* mx = malloc(sizeof(int));
 			(*mx) = (*posx)/8;
-			pieces[(*index)]->pos.x = (*posx)-(*mx)*8;
-			pieces[(*index)]->pos.y = (*mx);
+			board->pieces[(*index)]->pos.x = (*posx)-(*mx)*8;
+			board->pieces[(*index)]->pos.y = (*mx);
 			(*posx) ++;
+
+			// Selected position
+			board->pieces[(*index)]->selected_position.x = -1;
+			board->pieces[(*index)]->selected_position.y = -1;
 
 			// Kilde
 			strcpy(src, "");
@@ -57,7 +113,7 @@ int board_init(struct Piece* pieces[], char notation[64]) {
 				printf("\nPiece: (%d): %s - %s\n", (*index), name, src);
 			}
 			
-			strcpy(pieces[(*index)]->name, name);
+			strcpy(board->pieces[(*index)]->name, name);
 
 			// printf("\nPiece: (%d): %s - %s\n", (*index), name, src);
 			
@@ -65,17 +121,17 @@ int board_init(struct Piece* pieces[], char notation[64]) {
 			// Image & Texture
 
 			// Prøver at finde et passende texture i hukommelsen
-			pieces[(*index)]->texture = NULL;
+			board->pieces[(*index)]->texture = NULL;
 
 			for (int c = 0; c < (*captured_amount); ++c)
 			{
 				if (strstr(captured[c]->name, name)) {
-					pieces[(*index)]->texture = captured[c]->texture;
+					board->pieces[(*index)]->texture = captured[c]->texture;
 				}
 			}
 
 			
-			if (pieces[(*index)]->texture == NULL) {
+			if (board->pieces[(*index)]->texture == NULL) {
 				// Allokering
 				Image* img = malloc(sizeof(Image));
 				Texture2D* texture = malloc(sizeof(Texture2D));
@@ -85,7 +141,7 @@ int board_init(struct Piece* pieces[], char notation[64]) {
 				(*texture) = LoadTextureFromImage((*img));
 
 				// Tildeling
-				pieces[(*index)]->texture = texture;
+				board->pieces[(*index)]->texture = texture;
 
 				free(img); // Hvis vi fjerner texture forsvinder de
 
@@ -134,19 +190,34 @@ int board_init(struct Piece* pieces[], char notation[64]) {
 
 
 
-void board_draw(int size) {
+void board_draw(struct Board* board) {
+	// Mønsteret på brættet
 	bool* switch_color = malloc(sizeof(bool));
 	(*switch_color) = 0;
 	
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; ++y) {
 			Color tc = ((*switch_color)) ? BROWN:BEIGE;
+			tc = (board->selected.x == x && board->selected.y == y) ? DARKBLUE:tc;
 			// (*switch_color) = !(*switch_color);
 			switch_color[0] = !switch_color[0];
-			DrawRectangle(x*size, y*size, size, size, tc);
+			DrawRectangle(x*board->size, y*board->size, board->size, board->size, tc);
 		}
 		(*switch_color) = !(*switch_color);
 	}
-
 	free(switch_color);
+
+
+
+	// Brikker
+	for (int i = 0; i < board->amount_of_pieces; ++i) {
+		if (board->pieces[i]->texture != NULL) {
+			// Tegner kun hvis texture findes
+			Vector2 correct_pos = { board->pieces[i]->pos.x * board->size, board->pieces[i]->pos.y * board->size };
+			
+			correct_pos = (board->pieces[i]->selected_position.x != -1) ? board->pieces[i]->selected_position:correct_pos;
+
+			DrawTextureV((*board->pieces[i]->texture), correct_pos, WHITE);
+		}
+	}
 }
