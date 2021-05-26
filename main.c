@@ -3,33 +3,40 @@
 
 int main(void)
 {
-	const int screenWidth = 512*2;
-	const int screenHeight = 512*2;
+	const int screenWidth = 512;
+	const int screenHeight = 512;
 
-	const int size = 64*2;
+	const int size = 64;
 		
 	InitWindow(screenWidth, screenHeight, "Chess");
 	SetTargetFPS(60);
 
-	SetWindowPosition((1920-512) - 20, 35);
+	SetWindowPosition((1440/2-512/2) - 20, 900/2-512/2);
 
 
 
-	// Opsætning af bræt
-	struct Board* board = board_init();
+	// ---------------------------- Opsætning af bræt ---------------------------- //
 
-	printf("Successfully loaded: (%d) pieces!\n", board->amount_of_pieces);
+
+	// "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+	static char fen[64] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+	struct Board board = board_init(fen);
+
+	Vector2 pos = { 3, 5 };
+	board = board_add_piece(board, 'q', pos);
+
 
 	while (!WindowShouldClose())
 	{
 		// Update
-		board_check_click(board);
+		board = board_check_click(board);
 
-		// Draw
+
+		// ----------------------- Draw ----------------------- //
 		BeginDrawing();
 		ClearBackground(RAYWHITE);
 
-		// Tegner brættet og alle stykker
+		// ---------- Tegner brættet og alle stykker ---------- //
 		board_draw(board);
 
 		EndDrawing();
