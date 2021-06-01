@@ -24,7 +24,7 @@ struct Board* board_init() {
 
 
 
-void board_draw(struct Board* board) {
+void draw(struct Board* board) {
 	// Mønsteret på brættet
 	bool switch_color = false;
 	
@@ -55,7 +55,7 @@ void board_draw(struct Board* board) {
 
 
 
-void board_move_piece(struct Board* board, Vector2 from, Vector2 to) {
+void move_piece(struct Board* board, Vector2 from, Vector2 to) {
 	
 	// Find brik
 	// Ryk brik
@@ -100,11 +100,11 @@ void board_move_piece(struct Board* board, Vector2 from, Vector2 to) {
 
 
 
-void board_check_click(struct Board* board) {
+void check_click(struct Board* board) {
 	Vector2 from = { 0, 6 };
 	Vector2 to = { 0, 5 };
 
-	if (IsKeyPressed('A')) board_move_piece(board, from, to);
+	if (IsKeyPressed('A')) move_piece(board, from, to);
 
 	Vector2 reset_pos = { -1, -1 };
 	Vector2 mpos = GetMousePosition();
@@ -126,7 +126,7 @@ void board_check_click(struct Board* board) {
 		// Affyres når musen slippes
 		if (board -> selected_piece != NULL) {
 			Vector2 mposv = { xpos, ypos };
-			board_move_piece(board, board -> selected_piece -> pos, mposv);
+			move_piece(board, board -> selected_piece -> pos, mposv);
 
 			board -> selected_piece -> selected_position = reset_pos;
 			board -> selected_piece = NULL;
@@ -142,7 +142,7 @@ void board_check_click(struct Board* board) {
 
 
 
-int board_load_pieces(struct Board* board) {
+int load_pieces(struct Board* board) {
 	
 	int* index = malloc(sizeof(int));
 	(*index) = 0;

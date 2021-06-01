@@ -1,13 +1,12 @@
 #include "main.h"
-int get_piece(struct Board board, Vector2 pos);
 
 
 
+Board move_piece(Board board, int piece_id) {
+	Vector2 dpos = board.selected_pos; // Desired position
+	Piece P = board.pieces[piece_id];
 
-struct Board board_move_piece(struct Board board, int piece_id) {
-	struct Piece P = board.pieces[piece_id];
-
-	struct Beam beam[8];
+	Beam beam[8];
 
 	for (int i = 0; i < 8; ++i) {
 		Vector2 vec = { 0, 0 };
@@ -47,44 +46,26 @@ struct Board board_move_piece(struct Board board, int piece_id) {
 		beam[i].length = 0;
 	}
 
+
+	// Hvis det er en bonde!
 	if (P.name == 'p') {
 		int dir = (P.color) ? -1:1;
 
-		beam[0].length = (P.first) ? 2:1;
+		beam[0].length = (P.first_move) ? 2:1;
 
 		// Find en brik til siderne
 
-		Vector2 vecr = { P.pos.x+1, P.pos.y + dir };
-		Vector2 vecl = { P.pos.x-1, P.pos.y + dir };
-		int pri = get_piece(board, vecr);
-		int pli = get_piece(board, vecl);
+		Vector2 pos = calc_piece_pos(board, P.notation);
 
-		printf("\n%i\n", pri);
-		printf("\n%i\n", pli);
+		Vector2 vecr = { pos.x+1, pos.y + dir };
+		Vector2 vecl = { pos.x-1, pos.y + dir };
+		int pri = find_piece(board, 'B', 2);
+		int pli = find_piece(board, 'B', 2);
 
-		if (pri != -1) {
-			printf("%c\n", board.pieces[pri].name);
-		}
-
-		if (pli != -1) {
-			printf("%c\n", board.pieces[pli].name);
-		}
+	
 	}
 
 
 	board.pieces[piece_id] = P;
 	return board;
-}
-
-
-int get_piece(struct Board board, Vector2 pos) {
-	for (int i = 0; i < 64; ++i) {
-		Vector2 p = board.pieces[i].pos;
-
-		if (p.x == pos.x && p.y == pos.y) {
-			return i;
-		}
-	}
-
-	return -1;
 }

@@ -9,48 +9,72 @@
 #include "main.h"
 
 
-struct Piece {
+typedef struct Notations {
+	char x;
+	int y;
+} Notation;
+
+
+typedef struct Pieces {
     char name;
 
-    bool in_use;
-    bool color;
+    bool has_texture; // Bruges til at vide om en brik allerede har et texture :)
 	bool alive;
+    bool color;
+
 	bool selected;
 
 	// Move meta
-    bool first;
-    bool just_moved;
+    bool first_move;
 
     Texture2D texture;
 	
-	Vector2 pos;
-};
+	Notation notation;
+} Piece;
 
 
-struct Board {
-	struct Piece pieces[64];
+typedef struct Boards {
+	Piece pieces[64];
 	int amount;
+
+	bool reverse_board;
 
 	// Til selektering af brikker
 	Vector2 selected_pos;
 	int selected_piece_id;
 
 	bool selected_deb;
-};
+} Board;
 
 
-struct Beam {
+typedef struct Beams {
 	Vector2 dir;
 	int length;
-};
+} Beam;
 
 
-struct Board board_init(char fen[64]);
-struct Board board_add_piece(struct Board board, char piece, Vector2 pos);
-// int board_load_pieces(struct Board* board);
-void board_draw(struct Board board);
-void board_draw_board(int size);
-void board_draw_piece(struct Board board, struct Piece piece, int size);
 
-struct Board board_check_click(struct Board board);
-struct Board board_move_piece(struct Board board, int piece_id);
+
+
+Board board_init(char fen[64], bool reverse_board);
+
+Board add_piece(Board board, char piece, Vector2 pos, Notation npos);
+
+
+
+void draw(Board board);
+void draw_board(int size);
+void draw_piece(Board board, Piece piece, int size);
+
+
+Board check_click(Board board);
+Board move_piece(Board board, int piece_id);
+
+Board keypress(Board board);
+
+
+int find_piece(Board board, char x, int y);
+
+
+
+Vector2 calc_piece_pos(Board board, Notation npos);

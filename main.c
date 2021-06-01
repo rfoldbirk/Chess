@@ -11,7 +11,7 @@ int main(void)
 	InitWindow(screenWidth, screenHeight, "Chess");
 	SetTargetFPS(60);
 
-	SetWindowPosition((1440/2-512/2) - 20, 900/2-512/2);
+	SetWindowPosition((1920/2-512/2) - 20, 900/2-512/2);
 
 
 
@@ -20,24 +20,26 @@ int main(void)
 
 	// "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 	static char fen[64] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-	struct Board board = board_init(fen);
+	Board board = board_init(fen, false);
 
 	Vector2 pos = { 3, 5 };
-	board = board_add_piece(board, 'q', pos);
+	Notation npos = { 'E', 4 };
+	// board = add_piece(board, 'q', pos, npos);
 
 
 	while (!WindowShouldClose())
 	{
 		// Update
-		board = board_check_click(board);
+		board = check_click(board);
 
+		board = keypress(board);
 
 		// ----------------------- Draw ----------------------- //
 		BeginDrawing();
 		ClearBackground(RAYWHITE);
 
 		// ---------- Tegner brættet og alle stykker ---------- //
-		board_draw(board);
+		draw(board);
 
 		EndDrawing();
 	}
