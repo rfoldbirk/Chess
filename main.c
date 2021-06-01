@@ -11,38 +11,35 @@ int main(void)
 	InitWindow(screenWidth, screenHeight, "Chess");
 	SetTargetFPS(60);
 
-
-	// Opsætning af bræt
-	const int amount = 65;
-	struct Piece* pieces[amount];
-	
-	char notation[amount];
-	strcpy(notation, "rnbqkbnr-pppppppp--8888--PPPPPPPP-RNBQKBNR");
+	SetWindowPosition((1920/2-512/2) - 20, 900/2-512/2);
 
 
-	int AMOUNT = board_init(pieces, notation);
 
-	printf("Successfully loaded: (%d) pieces!\n", AMOUNT);
+	// ---------------------------- Opsætning af bræt ---------------------------- //
+
+
+	// "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+	static char fen[64] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+	Board board = board_init(fen, false);
+
+	Vector2 pos = { 3, 5 };
+	Notation npos = { 'E', 4 };
+	// board = add_piece(board, 'q', pos, npos);
+
 
 	while (!WindowShouldClose())
 	{
+		// Update
+		board = check_click(board);
+
+		board = keypress(board);
+
+		// ----------------------- Draw ----------------------- //
 		BeginDrawing();
 		ClearBackground(RAYWHITE);
 
-
-		board_draw(size);
-
-
-		// Pieces
-		for (int i = 0; i < AMOUNT; ++i) {
-			if (pieces[i] == NULL) continue;
-			if (pieces[i]->texture != NULL) {
-				// Tegner kun hvis texture findes
-				DrawTexture((*pieces[i]->texture), pieces[i]->pos.x*size, pieces[i]->pos.y*size, WHITE);
-			}
-		
-		}
-
+		// ---------- Tegner brættet og alle stykker ---------- //
+		draw(board);
 
 		EndDrawing();
 	}

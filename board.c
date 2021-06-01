@@ -1,152 +1,237 @@
 #include "main.h"
 
 
-int board_init(struct Piece* pieces[], char notation[64]) {
-	
-	int* index = malloc(sizeof(int));
-	(*index) = 0;
 
-	int* posx = malloc(sizeof(int));
-	(*posx) = 0;
-
-	// char* captured = malloc(sizeof(char)*12);
-	// strcpy(captured, "");
-
-	struct Smart_Texture* captured[12];
-	int* captured_amount = malloc(sizeof(int));
-	(*captured_amount) = 0;
+Notation increment(Notation npos, char fen_char) {
 
 
-	for (int i = 0; i < strlen(notation); ++i)
-	{	
-		if (notation[i] == '-') continue;
+	switch (fen_char) {
+		case '/':
+			npos.x = 'A';
+			npos.y -= 1;
+			break;
 
-		char* n = malloc(sizeof(char));
-		n[0] = notation[i];
+		case '8':
+			npos.x += fen_char;
+			break;
 
-		// Allokerer hukommelse til brikken
-		pieces[(*index)] = malloc(sizeof(struct Piece));
-		strcpy(pieces[(*index)]->name, "??"); // Default navn
+		default:
+			npos.x += 1;
 
-		if (n[0] >= 'A') {
-			char* name = malloc(sizeof(char)*3);
-			char* src = malloc(sizeof(char)*14);
-			strcpy(name, "");
-
-			char* small_letter = malloc(sizeof(char));
-			(*small_letter) = tolower(n[0]);
-
-			// Navn
-			strcpy(name, (n[0] < 'a') ? "w":"b");
-			strncat(name, &small_letter[0], 1);
-	
-			// Position
-			int* mx = malloc(sizeof(int));
-			(*mx) = (*posx)/8;
-			pieces[(*index)]->pos.x = (*posx)-(*mx)*8;
-			pieces[(*index)]->pos.y = (*mx);
-			(*posx) ++;
-
-			// Kilde
-			strcpy(src, "");
-			strcat(src, "pieces/");
-			strcat(src, name);
-			strcat(src, ".png");
-
-			if (strstr(name, "wu")) {
-				printf("\nPiece: (%d): %s - %s\n", (*index), name, src);
+			if (npos.x > 'H') {
+				npos.x = 'A';
+				// npos.y -= 1;
 			}
-			
-			strcpy(pieces[(*index)]->name, name);
-
-			// printf("\nPiece: (%d): %s - %s\n", (*index), name, src);
-			
-
-			// Image & Texture
-
-			// Prøver at finde et passende texture i hukommelsen
-			pieces[(*index)]->texture = NULL;
-
-			for (int c = 0; c < (*captured_amount); ++c)
-			{
-				if (strstr(captured[c]->name, name)) {
-					pieces[(*index)]->texture = captured[c]->texture;
-				}
-			}
-
-			
-			if (pieces[(*index)]->texture == NULL) {
-				// Allokering
-				Image* img = malloc(sizeof(Image));
-				Texture2D* texture = malloc(sizeof(Texture2D));
-
-				// Lav resourcer
-				(*img) = LoadImage(src);
-				(*texture) = LoadTextureFromImage((*img));
-
-				// Tildeling
-				pieces[(*index)]->texture = texture;
-
-				free(img); // Hvis vi fjerner texture forsvinder de
-
-				// Gem og genbrug textures
-
-				captured[(*captured_amount)] = malloc(sizeof(struct Smart_Texture));
-
-				strcpy(captured[(*captured_amount)]->name, name);
-				captured[(*captured_amount)]->texture = texture;
-				
-				(*captured_amount) ++;
-			}
-
-
-
-
-			// Ting der skal frigøres
-			/*
-			captured
-			index
-
-			name
-			src
-			small_letter
-			*/
-
-			free(small_letter);
-			free(name);
-			free(src);
-		} else {
-			(*posx) += (*n)-48;
-			(*index) --;
-		}
-
-		(*index) ++;
-		free(n);
 	}
-	
-	free(posx);
-	free(captured_amount);
-	
-	int cpy_index = (*index);
-	free(index);
-	return cpy_index;
+
+
+	return npos;
+}
+
+
+Board board_init(char fen[64], bool reverse_board) {
+	Board board; // Laver et bræt.
+
+	// Board booleans som er vigtige!
+	board.reverse_board = reverse_board;
+	board.selected_deb = true;
+
+
+	// Bruges til at positionere brikkerne.
+	Vector2 pos = { 0, 0 };
+	Notation npos = { 'A', 8 };
+
+	// Lav nogle stykker
+	int amount = sizeof(board.pieces) / sizeof(board.pieces[0]); // For længden af FEN koden.
+	for (int i = 0; i < amount; ++i) {
+
+		// Indstiller bools på brikken
+		board.pieces[i].has_texture = false;
+		board.pieces[i].alive = false;
+		board.pieces[i].selected = false;
+		board.pieces[i].first_move = true;
+
+
+		// Sørger for at y bliver øget.
+		Notation original = npos;
+		npos = increment(npos, fen[i]);
+		if (fen[i] < 'A') continue;
+
+		board = add_piece(board, fen[i], pos, original);
+
+		pos.x += 1;
+	}
+
+	return board;
+}
+
+
+Board add_piece(Board board, char piece, Vector2 pos, Notation npos) {
+
+	// ---------------- Find et nyt index ---------------- //
+	int index = -1;
+	for (int o = 0; o < 64; ++o) {
+		if (!board.pieces[o].alive) {
+			index = o;
+			break;
+		}
+	}
+	if (index == -1 || index > 63) return board;
+
+	// --------------------- Position -------------------- //
+	board.pieces[index].notation = npos;
+
+	// ------------------- Navn & Farve ------------------ //
+	board.pieces[index].alive = true;
+	board.pieces[index].has_texture = true;
+	board.pieces[index].name = tolower(piece);
+	board.pieces[index].color = (piece < 'a') ? 1:0;
+
+
+	// --------------------- Texture --------------------- //
+
+
+	// Tjek om texture allerede findes...
+	int already_exists_id = -1;
+
+	for (int i = 0; i < 64; ++i) {
+		Piece _piece = board.pieces[i];
+
+		if (i == index) continue;
+		if (!board.pieces[i].has_texture) break;
+
+		if (_piece.name == board.pieces[index].name) {
+			if (_piece.color == board.pieces[index].color) {
+				already_exists_id = i;
+			}
+		}
+	}
+
+
+	// Valg af texture
+
+	if (already_exists_id != -1) {
+		board.pieces[index].texture = board.pieces[already_exists_id].texture;
+	}
+	else {
+		static char src[13] = "pieces/__.png";
+		src[7] = (piece < 'a') ? 'w':'b';
+		src[8] = tolower(piece);
+		
+		Image img = LoadImage(src);
+		Texture2D texture = LoadTextureFromImage(img);
+
+		board.pieces[index].texture = texture;
+	}
+
+
+	return board;
 }
 
 
 
-void board_draw(int size) {
-	bool* switch_color = malloc(sizeof(bool));
-	(*switch_color) = 0;
+
+void draw(Board board) {
+	draw_board(64);
+
+	int index_render_last = -1;
+
+
+	for (int i = 0; i < 64; ++i) {
+
+		if (!board.pieces[i].alive) continue;
+
+		// Hvis brikken er selekteret skal den vises til sidst
+		if (board.pieces[i].selected) {
+			index_render_last = i;
+			continue;
+		}
+
+		draw_piece(board, board.pieces[i], 64);
+	}
+
+
+	// Tegner det øverste lag til sidst.
+	if (index_render_last != -1) {
+		draw_piece(board, board.pieces[index_render_last], 64);
+	}
+}
+
+// Konvertere en notation til den korrekte vektor position.
+Vector2 calc_piece_pos(Board board, Notation npos) {
+	Vector2 vpos;
+
+	if (board.reverse_board) {
+		vpos.x = 7-(npos.x - 'A');
+		vpos.y = npos.y - 1;
+	}
+	else {
+		vpos.x = npos.x - 'A';
+		vpos.y = 8 - npos.y;
+	}
+
+
+	return vpos;
+}
+
+
+void draw_piece(Board board, Piece piece, int size) {
+	Vector2 vpos = calc_piece_pos(board, piece.notation);
+	Vector2 pos = { vpos.x*size, vpos.y*size };
+
+
+	if (piece.selected) {
+		Color col = { 255, 100, 255, 50 };
+		Vector2 vsize = { 64, 64 };
+		DrawRectangleV(pos, vsize, col);
+	}
+
+	// Hvis brikken er valgt skal positionen være lidt anderledes
+	if (piece.selected) {
+		pos.x = board.selected_pos.x - size/2;
+		pos.y = board.selected_pos.y - size/2;
+	}
+
+	// Tegner brik
+	DrawTextureV(piece.texture, pos, WHITE);
+}
+
+
+void draw_board(int size) {
+	// Mønsteret på brættet
+	bool switch_color = false;
 	
+	// Laver et 8x8 bræt
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; ++y) {
-			Color tc = ((*switch_color)) ? BROWN:BEIGE;
-			// (*switch_color) = !(*switch_color);
-			switch_color[0] = !switch_color[0];
-			DrawRectangle(x*size, y*size, size, size, tc);
+			Color tile_color = (switch_color) ? BROWN:BEIGE;	
+			switch_color = !switch_color;
+
+			DrawRectangle(x * size, y * size, size, size, tile_color);
 		}
-		(*switch_color) = !(*switch_color);
+		switch_color = !switch_color;
+	}
+}
+
+
+
+
+// Returnerer id'et på et stykke.
+int find_piece(Board board, char x, int y) {
+	for (int i = 0; i < 64; ++i) {
+		Piece piece = board.pieces[i];
+
+		// Tjekker om den er i live.
+		if (!piece.alive) continue;
+
+		// Hvis position IKKE passer!
+		if (piece.notation.x != x || piece.notation.y == y) continue;
+
+		return i;
 	}
 
-	free(switch_color);
+	return -1;
 }
+
+
+
