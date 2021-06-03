@@ -12,25 +12,19 @@ int choosen_piece = -1;
 
 Board keypress(Board board) {
 
+	char cp = toupper( GetCharPressed() );
 
-	if (IsKeyPressed('G')) {
-		int pid = find_piece(board, 'A', 2);
+	if (cp >= 'A' && cp <= 'H') {
+		board = remove_selections(board);
+		int pid = find_piece(board, cp, 2);
 
 		board.pieces[pid].selected = !board.pieces[pid].selected;
-
-		printf("%s\n", "Wuhu!");
 	}
 
 
 	if (IsKeyPressed('X')) {
 		board.reverse_board = !board.reverse_board;
 	}
-	
-	return board;
-}
-
-
-Board remove_selection(Board board, int pid) {
 	
 	return board;
 }

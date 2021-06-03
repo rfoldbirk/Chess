@@ -1,71 +1,80 @@
 #include "main.h"
 
 
+Beam check_direction(Board board, Piece piece, Vector2 dir, int limit) {
+	Beam beam = { dir, 0, false };
 
-Board move_piece(Board board, int piece_id) {
-	Vector2 dpos = board.selected_pos; // Desired position
-	Piece P = board.pieces[piece_id];
+	Notation on = piece.notation;
 
-	Beam beam[8];
 
-	for (int i = 0; i < 8; ++i) {
-		Vector2 vec = { 0, 0 };
 
-		switch (i) {
-			case 0: // nord
-				vec.y = -1;
-				break;
-			case 1: // nord øst
-				vec.x = 1;
-				vec.y = -1;
-				break;
-			case 2: // øst
-				vec.x = 1;
-				break;
-			case 3: // syd øst
-				vec.x = 1;
-				vec.y = 1;
-				break;
-			case 4: // syd
-				vec.y = 1;
-				break;
-			case 5: // syd vest
-				vec.x = -1;
-				vec.y = 1;
-				break;
-			case 6: // vest
-				vec.x = -1;
-				break;
-			case 7: // nord vest
-				vec.x = -1;
-				vec.y = -1;
-				break;
+	while (true) {
+
+		int reverse = (piece.color) ? 1:-1;
+
+		on.x += dir.x;
+		on.y += dir.y * reverse;
+
+		// Tjekker om brikken er nået grænsen
+		if (beam.length >= limit && limit != -1) break;
+		if (on.x < 'A' || on.x > 'H') break;
+		if (on.y < 1 || on.y > 8) break;
+
+
+		int pid = find_piece(board, on.x, on.y);
+
+		if (board.pieces[pid].color != piece.color && pid != -1 && limit != 2) {
+			beam.length += 1;
+			beam.last_is_enemy = true;
+			break;
+		}
+		else {
+			// break;
 		}
 
-		beam[i].dir = vec;
-		beam[i].length = 0;
+		if (pid != -1) break;
+
+		beam.length += 1;
+	}
+
+	return beam;
+}
+
+
+Board move_piece(Board board, int piece_id) {
+	return board;
+}
+
+
+Board add_possible_move(Board board, Notation move) {
+	for (int i = 0; i < 200; ++i) {
+		if (board.allowed_moves[i].x == '0') continue;
+
+		board.allowed_moves[i] = move;
+	}
+
+	return board;
+}
+
+
+Board calc_moves(Board board, Piece piece) {
+
+	// 1. Lav nogle beams
+	// 2. Oversæt beams til træk.
+
+
+	// Laver otte beams
+	Beam beams[8];
+	for (int i = 0; i < 8; ++i)
+		beams[i].length = 0;
+
+
+
+	if (piece.name == 'p') {
+		board.allowed_moves[0].x = 'D';
+		board.allowed_moves[0].y = 3;
 	}
 
 
-	// Hvis det er en bonde!
-	if (P.name == 'p') {
-		int dir = (P.color) ? -1:1;
-
-		beam[0].length = (P.first_move) ? 2:1;
-
-		// Find en brik til siderne
-
-		Vector2 pos = calc_piece_pos(board, P.notation);
-
-		Vector2 vecr = { pos.x+1, pos.y + dir };
-		Vector2 vecl = { pos.x-1, pos.y + dir };
-		int pri = find_piece(board, 'B', 2);
-		int pli = find_piece(board, 'B', 2);
-
-	
-	}
-
-
-	board.pieces[piece_id] = P;
 	return board;
 }

@@ -1,8 +1,10 @@
 #include "main.h"
 
+bool already_selected = false;
 
 Board check_click(Board board) {
 	if (IsMouseButtonDown(0)) {
+
 		// Tjekker efter om spilleren trykker på en brik
 		Vector2 mpos = GetMousePosition();
 		board.selected_pos = mpos;
@@ -12,6 +14,7 @@ Board check_click(Board board) {
 		// Hvis en brik allerede bliver rykket rundt på, skal vi ikke vælge en ny.
 		if (!board.selected_deb) return board;
 
+
 		for (int i = 0; i < 64; ++i) {
 			Piece P = board.pieces[i];
 
@@ -20,6 +23,11 @@ Board check_click(Board board) {
 			if (!P.alive) continue;
 			if (vpos.x != xpos || vpos.y != ypos) continue;
 
+
+			already_selected = P.selected;
+			board = remove_selections(board); // Fjerner brikken som var valgt før, hvis den altså findes :)
+			
+			// Selekter brik
 			board.selected_deb = false;
 			P.selected = true;
 
@@ -36,7 +44,7 @@ Board check_click(Board board) {
 			board = move_piece(board, board.selected_piece_id);
 
 			// Nulstiller selektions variablerne, så den snapper til den position den skal være på.
-			board.pieces[board.selected_piece_id].selected = false;
+			board.pieces[board.selected_piece_id].selected = !already_selected;
 		}
 	}
 

@@ -15,6 +15,13 @@ typedef struct Notations {
 } Notation;
 
 
+typedef struct Beams {
+	Vector2 dir;
+	int length;
+	bool last_is_enemy;
+} Beam;
+
+
 typedef struct Pieces {
     char name;
 
@@ -44,37 +51,38 @@ typedef struct Boards {
 	int selected_piece_id;
 
 	bool selected_deb;
+
+	Beam beam_collection[8]; // 0: n ne nw - s se sw - e w
+	Notation allowed_moves[200];
 } Board;
 
 
-typedef struct Beams {
-	Vector2 dir;
-	int length;
-} Beam;
 
-
-
-
-
+// board.c
 Board board_init(char fen[64], bool reverse_board);
+Board add_piece(Board board, char piece, Notation npos);
 
-Board add_piece(Board board, char piece, Vector2 pos, Notation npos);
-
-
-
-void draw(Board board);
+Board draw(Board board);
 void draw_board(int size);
-void draw_piece(Board board, Piece piece, int size);
+Board draw_piece(Board board, Piece piece, int size);
+Board draw_moves(Board board, Piece piece);
+
+int find_piece(Board board, char x, int y);
+Board remove_selections(Board board);
+Vector2 calc_piece_pos(Board board, Notation npos);
+Notation increment(Notation npos, char fen_char);
 
 
-Board check_click(Board board);
+// move.c
+Board calc_moves(Board board, Piece piece);
 Board move_piece(Board board, int piece_id);
 
+Beam check_direction(Board board, Piece piece, Vector2 dir, int limit);
+
+
+// keyboard.c
 Board keypress(Board board);
 
 
-int find_piece(Board board, char x, int y);
-
-
-
-Vector2 calc_piece_pos(Board board, Notation npos);
+// mouse.c
+Board check_click(Board board);
