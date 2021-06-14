@@ -1,13 +1,6 @@
 #include "main.h"
 
-Vector2 n_dir = { 0, 1 };
-Vector2 nw_dir = { -1, 1 };
-Vector2 ne_dir = { 1, 1 };
-Vector2 s_dir = { 0, -1 };
-Vector2 sw_dir = { -1, -1 };
-Vector2 se_dir = { 1, -1 };
-Vector2 w_dir = { 1, 0 };
-Vector2 e_dir = { -1, 0 };
+
 
 
 
@@ -18,11 +11,11 @@ Board board_init(char fen[64], bool reverse_board) {
 	// Board booleans som er vigtige!
 	board.reverse_board = reverse_board;
 	board.selected_deb = true;
+	board.should_calc = true;
+	board.size = 64;
+	board.turn = false;
 
-	// Sætter alle beams i boarded til nul!
-	for (int i = 0; i < 8; ++i)
-		board.beam_collection[i].length = 0;
-
+	// Sætter alle træk i boarded til nul!
 	for (int i = 0; i < 200; ++i)
 		board.allowed_moves[i].x = '0';
 
@@ -40,6 +33,7 @@ Board board_init(char fen[64], bool reverse_board) {
 		board.pieces[i].alive = false;
 		board.pieces[i].selected = false;
 		board.pieces[i].first_move = true;
+		board.pieces[i].just_enpassant = false;
 
 
 		// Sørger for at y bliver øget.
@@ -122,7 +116,7 @@ Board add_piece(Board board, char piece, Notation npos) {
 
 
 Board draw(Board board) {
-	draw_board(64);
+	draw_board(board.size);
 
 	int index_render_last = -1;
 
@@ -158,15 +152,17 @@ Board draw_piece(Board board, Piece piece, int size) {
 
 
 	if (piece.selected) {
-		Color col = { 255, 100, 255, 50 };
+		// Tegner en baggrund til brikken, så spilleren kan se at den er selekteret.
+		Color pink = { 255, 100, 255, 50 };
 		Vector2 vsize = { 64, 64 };
-		DrawRectangleV(pos, vsize, col);
+		DrawRectangleV(pos, vsize, pink);
 	}
 
 	// Hvis brikken er valgt skal positionen være lidt anderledes
 	if (piece.selected) {
 
 		// Tegner alle mulige træk for brikken.
+		board = calc_moves(board, piece);
 		board = draw_moves(board, piece);
 
 
@@ -190,109 +186,30 @@ Board draw_piece(Board board, Piece piece, int size) {
 
 
 Board draw_moves(Board board, Piece piece) {
-	int SIZE = 64;
-
-	// Beam beams[8];
-
-	// // Sætter alle beams til nul, så de ikke bliver tegnet hvis de ikke er i brug.
-	// for (int i = 0; i < 8; ++i) {
-	// 	beams[i].length = 0;
-	// 	board.beam_collection[i].length = 0;
-	// }
-
-
-
-	// if (piece.name == 'p') {
-	// 	board.beam_collection[0] = check_direction(board, piece, n_dir, (piece.first_move ? 2:1));
-	// 	board.beam_collection[1] = check_direction(board, piece, nw_dir, 1);
-	// 	board.beam_collection[2] = check_direction(board, piece, ne_dir, 1);
-
-	// 	if (!board.beam_collection[1].last_is_enemy) board.beam_collection[1].length = 0;
-	// 	if (!board.beam_collection[2].last_is_enemy) board.beam_collection[2].length = 0;
-
-
-
-
-	// }
-	// else if (piece.name == 'b') {
-	// 	board.beam_collection[0] = check_direction(board, piece, nw_dir, -1);
-	// 	board.beam_collection[1] = check_direction(board, piece, sw_dir, -1);
-	// 	board.beam_collection[2] = check_direction(board, piece, ne_dir, -1);
-	// 	board.beam_collection[3] = check_direction(board, piece, se_dir, -1);
-	// }
-	// else if (piece.name == 'r') {
-	// 	board.beam_collection[0] = check_direction(board, piece, n_dir, -1);
-	// 	board.beam_collection[1] = check_direction(board, piece, s_dir, -1);
-	// 	board.beam_collection[2] = check_direction(board, piece, w_dir, -1);
-	// 	board.beam_collection[3] = check_direction(board, piece, e_dir, -1);
-	// }
-	// else if (piece.name == 'q' || piece.name == 'k') {
-	// 	int length = (piece.name == 'q') ? -1:1;
-
-	// 	board.beam_collection[0] = check_direction(board, piece, n_dir, length);
-	// 	board.beam_collection[1] = check_direction(board, piece, s_dir, length);
-	// 	board.beam_collection[2] = check_direction(board, piece, w_dir, length);
-	// 	board.beam_collection[3] = check_direction(board, piece, e_dir, length);
-	// 	board.beam_collection[4] = check_direction(board, piece, nw_dir, length);
-	// 	board.beam_collection[5] = check_direction(board, piece, sw_dir, length);
-	// 	board.beam_collection[6] = check_direction(board, piece, ne_dir, length);
-	// 	board.beam_collection[7] = check_direction(board, piece, se_dir, length);
-	// }
-	// else if (piece.name == 'n') {
-
-	// }
-	// else {
-	// 	return board;
-	// }
-
-
-
-
-	// Brikkens position
 
 	// Farve
 	Color transparent_gray = { 50, 50, 50, 50 };
 
-
-	// Tegn beam markeringer
-	// for (int i = 0; i < 8; ++i) {
-
-	// 	Beam cb = board.beam_collection[i]; // En kopi af den aktuelle beam
-	// 	Notation on = piece.notation; // Original notation
-
-
-	// 	// Tegner alle markeringer i en beam.
-	// 	for (int o = 0; o < cb.length; ++o) {
-	// 		int reverse = (piece.color) ? 1:-1;
-
-	// 		on.x += board.beam_collection[i].dir.x;
-	// 		on.y += board.beam_collection[i].dir.y * reverse;
-
-	// 		Vector2 vpos = calc_piece_pos(board, on);
-	// 		Vector2 pos = { vpos.x*SIZE + SIZE/2, vpos.y*SIZE + SIZE/2 };
-
-	// 		if (o == cb.length-1 && cb.last_is_enemy)
-	// 			for (int z = 0; z < 5; ++z)
-	// 				DrawCircleLines(pos.x, pos.y, SIZE/2 - z, transparent_gray);
-	// 		else
-	// 			DrawCircle(pos.x, pos.y, SIZE/5, transparent_gray);
-
-	// 	}
-	// }
-
-	board = calc_moves(board, piece);
-
-
-	for (int i = 0; i < 1; ++i) {
+	for (int i = 0; i < 200; ++i) {
 		Notation note = board.allowed_moves[i];
 
 		if (note.x == '0') continue;
 
 
-		Vector2 vpos = calc_piece_pos(board, note);
-		Vector2 pos = { vpos.x*SIZE + SIZE/2, vpos.y*SIZE + SIZE/2 };
 
-		DrawCircle(pos.x, pos.y, SIZE/5, transparent_gray);
+		Vector2 vpos = calc_piece_pos(board, note);
+		Vector2 pos = { vpos.x*board.size + board.size/2, vpos.y*board.size + board.size/2 };
+
+		if (find_piece(board, note.x, note.y) == -1) {
+			DrawCircle(pos.x, pos.y, board.size/5, transparent_gray);
+		}
+		else {
+			for (int o = 0; o < 7; ++o) {
+				DrawCircleLines(pos.x, pos.y, board.size/2 - o, transparent_gray);
+			}
+			// DrawCircle(pos.x, pos.y, board.size/5, RED);
+		}
+
 	}
 
 
@@ -345,6 +262,7 @@ Board remove_selections(Board board) {
 		if (!board.pieces[i].selected) continue;
 		
 		board.pieces[i].selected = false;
+		board.should_calc = true;
 	}
 
 	return board;

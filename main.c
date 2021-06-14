@@ -1,8 +1,23 @@
 #include "main.h"
 
 
-int main(void)
-{
+struct Person {
+	int age;
+	int højde;
+};
+
+
+void change_a(int* number) {
+	*number += 1;
+}
+
+
+void change_person(struct Person* peter) {
+	peter->age += 1;
+}
+
+
+int main(void) {
 	const int screenWidth = 512;
 	const int screenHeight = 512;
 
@@ -19,23 +34,35 @@ int main(void)
 
 
 	// "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-	static char fen[64] = "1nbqkbnr/p1pppppp/8/8/8/8/PBPPPPPP/1N1QKBNR";
+	static char fen[64] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 	Board board = board_init(fen, false);
 
 	// Tilføjer en brik
-	Notation npos = { 'D', 3 };
-	board = add_piece(board, 'r', npos);
+	// Notation npos = { 'D', 3 };
+	// board = add_piece(board, 'p', npos);
 
 
 	// Slår first_move fra på brik G2
-	int pid = find_piece(board, 'G', 2);
-	board.pieces[pid].first_move = false;
+	// int pid = find_piece(board, 'G', 2);
+	// board.pieces[pid].first_move = false;
 
 
 	// Selekter brik
-	pid = find_piece(board, 'E', 2);
-	board.pieces[pid].selected = !board.pieces[pid].selected;
+	// pid = find_piece(board, 'E', 2);
+	// board.pieces[pid].selected = !board.pieces[pid].selected;
 
+
+	int a = 2;
+	struct Person Peter = { 19, 200 };
+
+	// printf("Tal: %i\n", a); // 2
+	printf("Peters alder: %i\n", Peter.age); // 2
+
+	// change_a(&a);
+	change_person(&Peter);
+
+	// printf("\nTal: %i\n", a);
+	printf("Peters alder: %i\n", Peter.age); // 4
 
 	while (!WindowShouldClose())
 	{
@@ -49,7 +76,7 @@ int main(void)
 		ClearBackground(RAYWHITE);
 
 		// ---------- Tegner brættet og alle stykker ---------- //
-		draw(board);
+		board = draw(board);
 
 		EndDrawing();
 	}

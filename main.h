@@ -1,9 +1,10 @@
 #pragma once
 
-#include <string.h>
+// #include <string.h>
+// #include <stdlib.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 
 #include "raylib.h"
 #include "main.h"
@@ -33,6 +34,7 @@ typedef struct Pieces {
 
 	// Move meta
     bool first_move;
+    bool just_enpassant;
 
     Texture2D texture;
 	
@@ -44,7 +46,10 @@ typedef struct Boards {
 	Piece pieces[64];
 	int amount;
 
+	int size; // Størrelse af hvert felt.
+
 	bool reverse_board;
+	bool turn;
 
 	// Til selektering af brikker
 	Vector2 selected_pos;
@@ -52,8 +57,8 @@ typedef struct Boards {
 
 	bool selected_deb;
 
-	Beam beam_collection[8]; // 0: n ne nw - s se sw - e w
 	Notation allowed_moves[200];
+	bool should_calc;
 } Board;
 
 
@@ -75,9 +80,10 @@ Notation increment(Notation npos, char fen_char);
 
 // move.c
 Board calc_moves(Board board, Piece piece);
-Board move_piece(Board board, int piece_id);
+Board move_piece(Board board, int piece_id, Notation target_pos);
 
 Beam check_direction(Board board, Piece piece, Vector2 dir, int limit);
+Notation convert_pos_to_notation(Board board, Vector2 pos);
 
 
 // keyboard.c
