@@ -1,21 +1,6 @@
 #include "main.h"
 
 
-struct Person {
-	int age;
-	int højde;
-};
-
-
-void change_a(int* number) {
-	*number += 1;
-}
-
-
-void change_person(struct Person* peter) {
-	peter->age += 1;
-}
-
 
 int main(void) {
 	const int screenWidth = 512;
@@ -52,17 +37,7 @@ int main(void) {
 	// board.pieces[pid].selected = !board.pieces[pid].selected;
 
 
-	int a = 2;
-	struct Person Peter = { 19, 200 };
 
-	// printf("Tal: %i\n", a); // 2
-	printf("Peters alder: %i\n", Peter.age); // 2
-
-	// change_a(&a);
-	change_person(&Peter);
-
-	// printf("\nTal: %i\n", a);
-	printf("Peters alder: %i\n", Peter.age); // 4
 
 	while (!WindowShouldClose())
 	{

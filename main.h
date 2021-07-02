@@ -10,20 +10,20 @@
 #include "main.h"
 
 
-typedef struct Notations {
+typedef struct Notation {
 	char x;
 	int y;
 } Notation;
 
 
-typedef struct Beams {
+typedef struct Beam {
 	Vector2 dir;
 	int length;
 	bool last_is_enemy;
 } Beam;
 
 
-typedef struct Pieces {
+typedef struct Piece {
     char name;
 
     bool has_texture; // Bruges til at vide om en brik allerede har et texture :)
@@ -42,7 +42,7 @@ typedef struct Pieces {
 } Piece;
 
 
-typedef struct Boards {
+typedef struct Board {
 	Piece pieces[64];
 	int amount;
 
